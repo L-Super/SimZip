@@ -1,0 +1,12 @@
+# User-specific stuff
+.idea/
+
+# CMake
+cmake-build-*/
+
+# IntelliJ
+out/
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
