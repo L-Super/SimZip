@@ -20,8 +20,7 @@ public:
     explicit SimZip(const std::string & zipName);
     ~SimZip();
 
-    bool add(const std::string & file);
-    bool add(const std::string &file, const std::string &archiveName);
+    bool add(const std::string &file, const std::string &archiveName = {});
 
     void save();
 

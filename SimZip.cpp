@@ -25,36 +25,6 @@ SimZip::~SimZip() {
 
 }
 
-bool SimZip::add(const std::string &file) {
-    std::ifstream ifs(file, std::ios::binary | std::ios::in);
-    if (!ifs.is_open()) {
-        std::cerr << file << " open failed\n";
-        return false;
-    }
-    std::stringstream ss;
-    ss << ifs.rdbuf();
-    std::string bytes = ss.str();
-
-    fs::path path(file);
-    auto filename = path.filename().string();
-
-//    success &= mz_zip_writer_add_mem(&d_ptr->archive_, "cool/ff", nullptr, 0, 0);
-
-    auto success = mz_zip_writer_add_mem(&d_ptr->archive_, filename.c_str(), bytes.c_str(),
-                                         bytes.size(),
-                                         MZ_BEST_COMPRESSION);
-
-//    const char *pTestComment = "test comment";
-//    success &= mz_zip_writer_add_file(&d_ptr->archive_, "test.bin", pSrc_filename, pTestComment, (unsigned short)strlen(pTestComment), MZ_BEST_COMPRESSION);
-
-    if (!success) {
-        std::cerr << "Failed compress file: " << file << std::endl;
-        return false;
-    }
-
-    return true;
-}
-
 bool SimZip::add(const std::string &file, const std::string &archiveName) {
     std::ifstream ifs(file, std::ios::binary | std::ios::in);
     if (!ifs.is_open()) {
@@ -65,10 +35,16 @@ bool SimZip::add(const std::string &file, const std::string &archiveName) {
     ss << ifs.rdbuf();
     std::string bytes = ss.str();
 
-    fs::path path(file);
-    auto filename = path.filename().string();
+    std::string archiveFileName;
+    if (archiveName.empty()) {
+        fs::path path(file);
+        archiveFileName = path.filename().string();
+    }
+    else{
+        archiveFileName = archiveName;
+    }
 
-    auto success = mz_zip_writer_add_mem(&d_ptr->archive_, archiveName.c_str(), bytes.data(),
+    auto success = mz_zip_writer_add_mem(&d_ptr->archive_, archiveFileName.c_str(), bytes.data(),
                                          bytes.size(),
                                          MZ_BEST_COMPRESSION);
 
