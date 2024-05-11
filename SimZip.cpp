@@ -6,7 +6,7 @@
 
 class SimZipPrivate {
 public:
-    explicit SimZipPrivate() {}
+    explicit SimZipPrivate() = default;
 
 private:
     friend SimZip;
@@ -16,7 +16,7 @@ private:
 
 SimZip::SimZip(const std::string &zipName) : d_ptr(new SimZipPrivate()) {
     d_ptr->archiveName = zipName;
-    if (!mz_zip_writer_init_file(&d_ptr->archive_, d_ptr->archiveName.c_str(), 65537)) {
+    if (!mz_zip_writer_init_file(&d_ptr->archive_, d_ptr->archiveName.c_str(), 0)) {
         std::cerr << "zip writer init failed\n";
     }
 }
@@ -29,6 +29,7 @@ bool SimZip::add(const std::string &file) {
     std::ifstream ifs(file, std::ios::binary | std::ios::in);
     if (!ifs.is_open()) {
         std::cerr << file << " open failed\n";
+        return false;
     }
     std::stringstream ss;
     ss << ifs.rdbuf();
@@ -52,24 +53,36 @@ bool SimZip::add(const std::string &file) {
     }
 
     return true;
-
 }
 
-void SimZip::write(const std::string &filename) {
+bool SimZip::add(const std::string &file, const std::string &archiveName) {
+    std::ifstream ifs(file, std::ios::binary | std::ios::in);
+    if (!ifs.is_open()) {
+        std::cerr << file << " open failed\n";
+        return false;
+    }
+    std::stringstream ss;
+    ss << ifs.rdbuf();
+    std::string bytes = ss.str();
 
-}
+    fs::path path(file);
+    auto filename = path.filename().string();
 
-void SimZip::write(const std::string &filename, const std::string &archiveName) {
+    auto success = mz_zip_writer_add_mem(&d_ptr->archive_, archiveName.c_str(), bytes.data(),
+                                         bytes.size(),
+                                         MZ_BEST_COMPRESSION);
 
-}
+    if (!success) {
+        std::cerr << "Failed compress file: " << file << std::endl;
+        return false;
+    }
 
-void SimZip::write(const std::vector<std::string> &files) {
-
+    return true;
 }
 
 void SimZip::save() {
     if (!mz_zip_writer_finalize_archive(&d_ptr->archive_)) {
-        // if it failed, then remove zip
+        // if it was failed, then remove the zip file
         fs::remove(fs::path(d_ptr->archiveName));
         std::cerr << "Failed creating zip archive " << d_ptr->archiveName << std::endl;
     }

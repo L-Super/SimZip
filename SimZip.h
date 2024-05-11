@@ -21,9 +21,7 @@ public:
     ~SimZip();
 
     bool add(const std::string & file);
-    void write(const std::string& filename);
-    void write(const std::string &filename, const std::string &archiveName);
-    void write(const std::vector<std::string>& files);
+    bool add(const std::string &file, const std::string &archiveName);
 
     void save();
 
