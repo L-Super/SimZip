@@ -11,13 +11,13 @@ public:
 private:
     friend SimZip;
     mz_zip_archive archive_{};
-    std::string archiveName;
+    std::string zipName_;
 };
 
 SimZip::SimZip(const std::string &zipName) : d_ptr(new SimZipPrivate()) {
-    d_ptr->archiveName = zipName;
-    if (!mz_zip_writer_init_file(&d_ptr->archive_, d_ptr->archiveName.c_str(), 0)) {
-        std::cerr << "zip writer init failed\n";
+    d_ptr->zipName_ = zipName;
+    if (!mz_zip_writer_init_file(&d_ptr->archive_, d_ptr->zipName_.c_str(), 0)) {
+        throw std::runtime_error("zip writer init failed");
     }
 }
 
@@ -59,13 +59,13 @@ bool SimZip::add(const std::string &file, const std::string &archiveName) {
 void SimZip::save() {
     if (!mz_zip_writer_finalize_archive(&d_ptr->archive_)) {
         // if it was failed, then remove the zip file
-        fs::remove(fs::path(d_ptr->archiveName));
-        std::cerr << "Failed creating zip archive " << d_ptr->archiveName << std::endl;
+        fs::remove(fs::path(d_ptr->zipName_));
+        std::cerr << "Failed creating zip archive " << d_ptr->zipName_ << std::endl;
     }
 
     mz_zip_writer_end(&d_ptr->archive_);
 
-    std::cout << "Created zip file " << d_ptr->archiveName << ", file size: " << d_ptr->archive_.m_archive_size / 1024
+    std::cout << "Created zip file " << d_ptr->zipName_ << ", file size: " << d_ptr->archive_.m_archive_size / 1024
               << "KB\n";
 }
 

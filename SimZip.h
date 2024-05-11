@@ -14,6 +14,11 @@
 
 namespace fs = std::filesystem;
 
+//TODO:
+// 1. support dir
+// 2. support extract
+// 3. support read file info
+
 class SimZipPrivate;
 class SimZip {
 public:
