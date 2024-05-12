@@ -1,15 +1,27 @@
-#include <iostream>
 #include "SimZip.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-//    zip_create("hh.zip", "F:/Code/CppProjects/SimZip/README.md");
+    // create zip
+//    SimZip zip("test.zip", SimZip::OpenMode::Create);
+//    zip.add("p.pdf");
+////    zip.add("计算机图形学.pdf");
+//    zip.add("新建文本.txt");
+//    zip.add("../SimZip.cpp", "src/Sim.cpp");
+//    zip.add("sky.jpg");
+//    zip.save();
 
 
-    SimZip zip("test.zip");
-//    zip.add("F:/Code/CppProjects/SimZip/");
-    zip.add("../README.md");
-    zip.add("../SimZip.cpp", "Sim.cpp");
-    zip.save();
+//    try {
+        SimZip zip("test1.zip", SimZip::OpenMode::Read);
+//        zip.extract("p.pdf", "../");
+//        zip.extract("sky.jpg", "../");
+//        zip.extract("新建文本.txt", "../");
+        //    zip.save();
+        zip.extractall("ex/");
+//    }
+//    catch (const std::runtime_error& e) {
+//        std::cerr << "运行时错误: " << e.what() << std::endl;
+//    }
+
     return 0;
 }
