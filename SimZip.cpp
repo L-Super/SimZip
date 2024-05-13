@@ -136,7 +136,9 @@ void SimZip::extract(const std::string& member, const std::string& path)
     dstPath = fs::absolute(dstPath.append(member));
 
     if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, index, dstPath.string().c_str(), 0)) {
-        std::cerr << "Failed extracting " << member << " from archive\n";
+        std::cerr << "Failed extracting " << member
+                  << " from archive. Error string: " << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_))
+                  << std::endl;
     }
 }
 
@@ -147,18 +149,43 @@ void SimZip::extractall(const std::string& path)
         fs::create_directory(dstPath);
     }
 
-    for (unsigned int i = 0; i < mz_zip_reader_get_num_files(&d_ptr->archive_); i++) {
-        mz_zip_archive_file_stat stat;
+    auto nums = mz_zip_reader_get_num_files(&d_ptr->archive_);
+    for (unsigned int i = 0; i < nums; i++) {
+        mz_zip_archive_file_stat stat{};
         if (!mz_zip_reader_file_stat(&d_ptr->archive_, i, &stat)) {
-            std::cerr << "read error\n";
+            std::cerr << "Read archive file failed. Error string: "
+                      << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
         }
-        std::cout << "stat: " << stat.m_filename << " index:" << stat.m_file_index << std::endl;
+        bool isDir = stat.m_is_directory;
+        std::cout << "stat: " << stat.m_filename << " index: " << stat.m_file_index
+                  << " is dir: " << isDir << std::endl;
+        // 文件名。如果字符串以 '/' 结尾，则为子目录条目。保证零端接，可截断以适合。
+        std::string filename = stat.m_filename;
+        std::cout << "filename: " << filename << std::endl;
 
-        // TODO: 解压其他软件压缩的zip包，含有中文会抛异常
-        fs::path filepath = fs::absolute(dstPath) / stat.m_filename;
-
-        if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, stat.m_file_index, filepath.string().c_str(), 0)) {
-            std::cerr << "Failed extracting " << stat.m_filename << " from archive\n";
+        // TODO: 根据文件名是否有/，去做子目录下的文件处理
+        if (mz_zip_reader_is_file_a_directory(&d_ptr->archive_, i)) {
+            std::cout << "is dir" << std::endl;
+            fs::path dir = dstPath / stat.m_filename;
+            fs::create_directory(dir);
+        }
+        else {
+            // TODO：solve GBK encoding
+            try {
+                fs::path filepath = fs::absolute(dstPath / stat.m_filename);
+                if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, stat.m_file_index, filepath.string().c_str(), 0)) {
+                    std::cerr << "Failed extracting " << stat.m_filename << " from archive. Error string: "
+                              << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
+                }
+            }
+            catch (const std::exception& e) {
+                std::cerr << e.what() << std::endl;
+                std::string filepath = dstPath.string() + "/" + stat.m_filename;
+                if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, stat.m_file_index, filepath.c_str(), 0)) {
+                    std::cerr << "Failed extracting " << stat.m_filename << " from archive. Error string: "
+                              << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
+                }
+            }
         }
     }
     close();
