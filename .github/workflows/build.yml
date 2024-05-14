@@ -44,7 +44,7 @@ jobs:
               run: cmake -B ${{github.workspace}}/build
 
             - name: Build
-              run: cmake --build ${{github.workspace}}/build
+              run: cmake --build ${{github.workspace}}/build --config Debug
 
     macos-build:
       runs-on: macOS-latest
