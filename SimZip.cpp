@@ -3,7 +3,22 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <windows.h>
+
+#ifdef WIN32
+#include <stringapiset.h>
+
+std::wstring char_to_wchar(const char* str)
+{
+    wchar_t* wc;
+    int len = MultiByteToWideChar(CP_ACP, 0, str, (int) strlen(str), NULL, 0);
+    wc = new wchar_t[len + 1];
+    MultiByteToWideChar(CP_ACP, 0, str, (int) strlen(str), wc, len);
+    wc[len] = '\0';
+    std::wstring wstr = wc;
+    delete[] wc;
+    return wstr;
+}
+#endif
 
 class SimZipPrivate {
 public:
@@ -156,35 +171,26 @@ void SimZip::extractall(const std::string& path)
             std::cerr << "Read archive file failed. Error string: "
                       << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
         }
-        bool isDir = stat.m_is_directory;
-        std::cout << "stat: " << stat.m_filename << " index: " << stat.m_file_index
-                  << " is dir: " << isDir << std::endl;
-        // 文件名。如果字符串以 '/' 结尾，则为子目录条目。保证零端接，可截断以适合。
-        std::string filename = stat.m_filename;
-        std::cout << "filename: " << filename << std::endl;
 
-        // TODO: 根据文件名是否有/，去做子目录下的文件处理
-        if (mz_zip_reader_is_file_a_directory(&d_ptr->archive_, i)) {
+        if (stat.m_is_directory) {
             std::cout << "is dir" << std::endl;
             fs::path dir = dstPath / stat.m_filename;
             fs::create_directory(dir);
         }
         else {
-            // TODO：solve GBK encoding
-            try {
-                fs::path filepath = fs::absolute(dstPath / stat.m_filename);
-                if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, stat.m_file_index, filepath.string().c_str(), 0)) {
-                    std::cerr << "Failed extracting " << stat.m_filename << " from archive. Error string: "
-                              << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
-                }
+            fs::path f;
+#ifdef WIN32
+            f = char_to_wchar(stat.m_filename);
+#else
+            f = stat.m_filename
+#endif
+            fs::path filepath = fs::absolute(dstPath / f);
+            if (filepath.filename().string() != stat.m_filename && !fs::exists(filepath.parent_path())) {
+                    fs::create_directories(filepath.parent_path());
             }
-            catch (const std::exception& e) {
-                std::cerr << e.what() << std::endl;
-                std::string filepath = dstPath.string() + "/" + stat.m_filename;
-                if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, stat.m_file_index, filepath.c_str(), 0)) {
-                    std::cerr << "Failed extracting " << stat.m_filename << " from archive. Error string: "
-                              << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
-                }
+            if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, stat.m_file_index, filepath.string().c_str(), 0)) {
+                std::cerr << "Failed extracting " << stat.m_filename << " from archive. Error string: "
+                          << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
             }
         }
     }
