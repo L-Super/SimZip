@@ -47,6 +47,7 @@ mz_zip_archive_file_stat SimZipPrivate::readFileStat(int index)
 
 auto SimZipPrivate::archiveFileIndex(const std::string& name)
 {
+    // FIXME: 文件名为中文时，查找失败
     int index = mz_zip_reader_locate_file(&archive_, name.c_str(), nullptr, 0);
 
     if (index < 0) {
@@ -78,7 +79,7 @@ SimZip::SimZip(const std::string& zipName, OpenMode mode) : d_ptr(new SimZipPriv
 
 SimZip::~SimZip()
 {
-    mz_zip_end(&d_ptr->archive_);
+    close();
 }
 
 bool SimZip::add(const std::string& file, const std::string& archiveName)
@@ -110,7 +111,7 @@ bool SimZip::add(const std::string& file, const std::string& archiveName)
         archiveFileName = archiveName;
     }
 
-    //    auto success = mz_zip_writer_add_file(&d_ptr->archive_, archiveFileName.c_str(),file.c_str(),"hello comment", 13, MZ_BEST_COMPRESSION);
+    // auto success = mz_zip_writer_add_file(&d_ptr->archive_, archiveFileName.c_str(),file.c_str(),"hello comment", 13, MZ_BEST_COMPRESSION);
     auto success = mz_zip_writer_add_mem(&d_ptr->archive_, archiveFileName.c_str(), bytes.data(), bytes.size(),
                                          MZ_BEST_COMPRESSION);
 
@@ -194,10 +195,10 @@ void SimZip::extractall(const std::string& path)
             }
         }
     }
-    close();
+    mz_zip_reader_end(&d_ptr->archive_);
 }
 
 void SimZip::close()
 {
-    mz_zip_reader_end(&d_ptr->archive_);
+    mz_zip_end(&d_ptr->archive_);
 }

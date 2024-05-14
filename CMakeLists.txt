@@ -3,9 +3,13 @@ project(SimZip)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(SimZip main.cpp
-        SimZip.cpp
-        SimZip.h)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
+add_executable(SimZip
+        main.cpp
+        SimZip.cpp SimZip.h)
 
 include(FetchContent)
 FetchContent_Declare(miniz
