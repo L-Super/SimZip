@@ -183,7 +183,7 @@ void SimZip::extractall(const std::string& path)
 #ifdef WIN32
             f = char_to_wchar(stat.m_filename);
 #else
-            f = stat.m_filename
+            f = stat.m_filename;
 #endif
             fs::path filepath = fs::absolute(dstPath / f);
             if (filepath.filename().string() != stat.m_filename && !fs::exists(filepath.parent_path())) {
