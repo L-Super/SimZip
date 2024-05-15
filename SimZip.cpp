@@ -170,10 +170,10 @@ void SimZip::extract(const std::string& member, const std::string& path)
     int index = d_ptr->archiveFileIndex(member);
 
     fs::path dstPath(path);
-    if (!is_directory(dstPath)) {
-        throw std::logic_error("Extract path is not dir");
+    if (!fs::exists(dstPath)) {
+        fs::create_directory(dstPath);
     }
-    dstPath = fs::absolute(dstPath.append(member));
+    dstPath = fs::absolute(dstPath / member);
 
     if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, index, dstPath.string().c_str(), 0)) {
         std::cerr << "Failed extracting " << member
@@ -198,7 +198,6 @@ void SimZip::extractall(const std::string& path)
         }
 
         if (stat.m_is_directory) {
-            std::cout << "is dir" << std::endl;
             fs::path dir = dstPath / stat.m_filename;
             fs::create_directory(dir);
         }
@@ -211,7 +210,7 @@ void SimZip::extractall(const std::string& path)
 #endif
             fs::path filepath = fs::absolute(dstPath / f);
             if (filepath.filename().string() != stat.m_filename && !fs::exists(filepath.parent_path())) {
-                    fs::create_directories(filepath.parent_path());
+                fs::create_directories(filepath.parent_path());
             }
             if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, stat.m_file_index, filepath.string().c_str(), 0)) {
                 std::cerr << "Failed extracting " << stat.m_filename << " from archive. Error string: "
