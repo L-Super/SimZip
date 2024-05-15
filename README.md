@@ -1,5 +1,6 @@
 ## SimZip - A C++ Wrapper for miniz Library
-SimZip is a lightweight C++ library that provides easy-to-use functionalities for zip and unzip operations using the `miniz` library. 
+SimZip is a lightweight C++ 17 library that provides easy-to-use functionalities for zip and unzip operations using the `miniz` library. 
+
 It aims to simplify the process of working with ZIP archives in C++ projects.
 
 ## Features
@@ -11,16 +12,22 @@ It aims to simplify the process of working with ZIP archives in C++ projects.
 Here's a basic example of how to use SimZip to compress and decompress files:
 
 ```cpp
-...
-```
+#include "SimZip.h"
+// create a zip
+SimZip zip("test.zip", SimZip::OpenMode::Create);
+zip.add("test.txt"); // add file
+zip.add("../SimZip.cpp", "folder/SimZip.cpp"); // add file to folder
+zip.add("test1.txt", "text.txt"); // add and rename file
+zip.save();
 
-## Documentation
-Full API documentation is available at SimZip Documentation.
+// extract zip
+SimZip zip("test.zip", SimZip::OpenMode::Read);
+zip.extract("test.txt", "output/"); //extract single file
+zip.extractall("output/"); // extract all files
+```
 
 ## Contributing
 Contributions are welcome!
 
-Please refer to CONTRIBUTING.md for information on how to contribute to SimZip.
-
 ## License
-SimZip is distributed under the MIT License.
+SimZip is distributed under the [MIT](LICENSE) License.

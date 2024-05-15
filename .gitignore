@@ -11,3 +11,5 @@ out/
 # mpeltonen/sbt-idea plugin
 .idea_modules/
 
+# macOS
+.DS_Store
