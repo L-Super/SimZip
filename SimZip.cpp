@@ -5,7 +5,7 @@
 #include <sstream>
 
 #ifdef WIN32
-#include <stringapiset.h>
+#include <windows.h>
 
 std::wstring char_to_wchar(const char* str)
 {
