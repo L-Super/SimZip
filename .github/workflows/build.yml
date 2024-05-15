@@ -36,4 +36,4 @@ jobs:
 
       - name: Test
         working-directory: ${{github.workspace}}/build
-        run: ctest --build-config
+        run: ctest -C Release
