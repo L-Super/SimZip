@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.28)
-project(SimZip)
+project(SimZip
+        VERSION 0.9.0
+        DESCRIPTION "A minimal C++17 zip library for zip compression and decompression."
+)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -7,7 +7,7 @@ void generateData()
 {
     std::ofstream file("data.txt");
     if (file.is_open()) {
-        for (auto i = 0; i < 10; i++) { file << "this is data for test."; }
+        for (auto i = 0; i < 10; i++) { file << "this is data for test.\n"; }
         file.close();
     }
 }
