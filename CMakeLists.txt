@@ -19,11 +19,12 @@ add_library(SimZip
 include(FetchContent)
 FetchContent_Declare(miniz
         GIT_REPOSITORY https://github.com/richgel999/miniz.git
-        GIT_TAG 3.0.2
-        DOWNLOAD_EXTRACT_TIMESTAMP true)
+        GIT_TAG 3.0.2)
 FetchContent_MakeAvailable(miniz)
-
+target_include_directories(SimZip PUBLIC ${PROJECT_SOURCE_DIR})
 target_link_libraries(SimZip PRIVATE miniz)
+
+include(GNUInstallDirs)
 
 if (ENABLE_TESTS)
     enable_testing()

@@ -47,6 +47,7 @@ std::wstring char_to_wchar(const char* str)
 class SimZipPrivate {
 public:
     explicit SimZipPrivate() = default;
+    void init(SimZip::OpenMode mode);
     mz_zip_archive_file_stat readFileStat(int index);
     auto archiveFileIndex(const std::string& name);
 
@@ -55,8 +56,25 @@ private:
     mz_zip_archive archive_{};
     std::string zipName_{};
     SimZip::OpenMode mode_{SimZip::OpenMode::None};
-    mz_zip_archive_file_stat archiveFileStat_{};
 };
+
+void SimZipPrivate::init(SimZip::OpenMode mode)
+{
+    switch (mode) {
+        case SimZip::OpenMode::Create: {
+            if (!mz_zip_writer_init_file(&archive_, zipName_.c_str(), 0))
+                throw std::runtime_error("Zip writer init failed");
+        } break;
+        case SimZip::OpenMode::Read: {
+            if (!mz_zip_reader_init_file(&archive_, zipName_.c_str(), 0)) {
+                throw std::runtime_error("Failed opening zip archive " + zipName_);
+            }
+        } break;
+        case SimZip::OpenMode::None:
+        default:
+            break;
+    }
+}
 
 mz_zip_archive_file_stat SimZipPrivate::readFileStat(int index)
 {
@@ -80,30 +98,27 @@ auto SimZipPrivate::archiveFileIndex(const std::string& name)
     return index;
 }
 
-SimZip::SimZip(const std::string& zipName, OpenMode mode) : d_ptr(new SimZipPrivate())
+SimZip::SimZip(const std::string& zipName, OpenMode mode) : d_ptr(std::make_unique<SimZipPrivate>())
 {
     d_ptr->zipName_ = zipName;
     d_ptr->mode_ = mode;
+    d_ptr->init(mode);
+}
 
-    switch (mode) {
-        case OpenMode::Create: {
-            if (!mz_zip_writer_init_file(&d_ptr->archive_, d_ptr->zipName_.c_str(), 0))
-                throw std::runtime_error("Zip writer init failed");
-        } break;
-        case OpenMode::Read: {
-            if (!mz_zip_reader_init_file(&d_ptr->archive_, d_ptr->zipName_.c_str(), 0)) {
-                throw std::runtime_error("Failed opening zip archive " + d_ptr->zipName_);
-            }
-        } break;
-        case OpenMode::None:
-        default:
-            break;
-    }
+SimZip::SimZip(const std::string& zipName) : d_ptr(std::make_unique<SimZipPrivate>())
+{
+    d_ptr->zipName_ = zipName;
 }
 
 SimZip::~SimZip()
 {
     close();
+}
+
+void SimZip::setmode(SimZip::OpenMode mode)
+{
+    d_ptr->mode_ = mode;
+    d_ptr->init(mode);
 }
 
 bool SimZip::add(const std::string& file, const std::string& archiveName)
@@ -165,7 +180,7 @@ void SimZip::save()
               << "KB\n";
 }
 
-void SimZip::extract(const std::string& member, const std::string& path)
+bool SimZip::extract(const std::string& member, const std::string& path)
 {
     int index = d_ptr->archiveFileIndex(member);
 
@@ -179,7 +194,9 @@ void SimZip::extract(const std::string& member, const std::string& path)
         std::cerr << "Failed extracting " << member
                   << " from archive. Error string: " << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_))
                   << std::endl;
+        return false;
     }
+    return true;
 }
 
 void SimZip::extractall(const std::string& path)

@@ -39,11 +39,23 @@ void clear()
 TEST_CASE("create zip", "[create_zip]")
 {
     generateData();
-    SimZip zip("test.zip", SimZip::OpenMode::Create);
-    REQUIRE(zip.add("data.txt") == true);
-    REQUIRE(zip.add("data.txt", "folder/rename.txt") == true);
-    REQUIRE(zip.add("empty.txt") == false);
-    zip.save();
+    SECTION("create_zip1")
+    {
+        SimZip zip("test.zip", SimZip::OpenMode::Create);
+        REQUIRE(zip.add("data.txt") == true);
+        REQUIRE(zip.add("data.txt", "folder/rename.txt") == true);
+        REQUIRE(zip.add("empty.txt") == false);
+        zip.save();
+    }
+    SECTION("create_zip2")
+    {
+        SimZip zip("test.zip");
+        zip.setmode(SimZip::OpenMode::Create);
+        REQUIRE(zip.add("data.txt") == true);
+        REQUIRE(zip.add("data.txt", "folder/rename.txt") == true);
+        REQUIRE(zip.add("empty.txt") == false);
+        zip.save();
+    }
 }
 
 TEST_CASE("extract zip", "[extract_zip]")
