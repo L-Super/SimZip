@@ -9,6 +9,18 @@ It aims to simplify the process of working with ZIP archives in C++ projects.
 - No external dependencies other than the miniz library.
 
 ## Usage
+
+CMake FetchContent
+```cmake
+include(FetchContent)
+FetchContent_Declare(SimZip
+        GIT_REPOSITORY https://github.com/L-Super/SimZip.git
+        GIT_TAG "main")
+FetchContent_MakeAvailable(SimZip)
+
+target_link_libraries(${PROJECT_NAME} SimZip)
+```
+
 Here's a basic example of how to use SimZip to compress and decompress files:
 
 ```cpp
