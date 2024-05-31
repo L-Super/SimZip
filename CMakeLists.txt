@@ -11,7 +11,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif ()
 
-option(ENABLE_TESTS "Build the test" ON)
+option(ENABLE_TESTS "Build the test" OFF)
 
 add_library(SimZip
         SimZip.cpp SimZip.h)
