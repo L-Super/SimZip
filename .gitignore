@@ -14,3 +14,7 @@ out/
 
 # macOS
 .DS_Store
+
+# Xmake cache
+.xmake/
+build/
