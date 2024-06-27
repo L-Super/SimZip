@@ -3,20 +3,28 @@ set_description("A minimal C++17 zip library for zip compression and decompressi
 set_version("0.9.0")
 set_languages("c++17")
 add_rules("mode.debug", "mode.release")
-add_requires("miniz", "catch2")
+add_requires("miniz")
+
+option("enable-test")
+    set_default(true)
+    set_description("Enable test")
+option_end()
 
 target("SimZip")
     set_kind("static")
     add_files("SimZip.cpp")
     add_packages("miniz")
+target_end()
 
-target("test")
-    set_default(false )
-    set_kind("binary")
-    add_files("test/test.cpp")
-    add_deps("SimZip")
-    add_packages("catch2")
-    add_tests("default")
+if has_config("enable-test") then
+    add_requires("catch2")
+    target("test")
+        set_kind("binary")
+        add_files("test/test.cpp")
+        add_deps("SimZip")
+        add_packages("catch2")
+        add_tests("default")
+end
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
