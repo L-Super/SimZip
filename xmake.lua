@@ -1,3 +1,5 @@
+set_project("SimZip")
+set_description("A minimal C++17 zip library for zip compression and decompression.")
 set_version("0.9.0")
 set_languages("c++17")
 add_rules("mode.debug", "mode.release")
@@ -9,10 +11,12 @@ target("SimZip")
     add_packages("miniz")
 
 target("test")
+    set_default(false )
     set_kind("binary")
-    add_deps("SimZip")
     add_files("test/test.cpp")
+    add_deps("SimZip")
     add_packages("catch2")
+    add_tests("default")
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
