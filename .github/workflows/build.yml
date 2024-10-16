@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        build-type: [Debug, Release]
+        build_type: [Debug, Release]
 
     steps:
       - name: Checkout Source code
