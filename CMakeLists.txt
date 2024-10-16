@@ -19,7 +19,7 @@ add_library(SimZip
 include(FetchContent)
 FetchContent_Declare(miniz
         GIT_REPOSITORY https://github.com/richgel999/miniz.git
-        GIT_TAG 3.0.2)
+        GIT_TAG 1ff82be7d67f5c2f8b5497f538eea247861e0717)
 FetchContent_MakeAvailable(miniz)
 target_include_directories(SimZip PUBLIC ${PROJECT_SOURCE_DIR})
 target_link_libraries(SimZip PRIVATE miniz)
