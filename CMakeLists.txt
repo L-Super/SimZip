@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.25)
 project(SimZip
         VERSION 0.9.0
         DESCRIPTION "A minimal C++17 zip library for zip compression and decompression."
@@ -15,6 +15,7 @@ option(ENABLE_TESTS "Build the test" OFF)
 
 add_library(SimZip
         SimZip.cpp SimZip.h)
+add_library(SimZip::SimZip ALIAS SimZip)
 
 include(FetchContent)
 FetchContent_Declare(miniz

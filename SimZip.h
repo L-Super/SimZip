@@ -28,8 +28,6 @@ SOFTWARE.
 #include <memory>
 #include <filesystem>
 
-namespace fs = std::filesystem;
-
 class SimZipPrivate;
 class SimZip {
 public:

@@ -28,6 +28,8 @@ SOFTWARE.
 #include <iostream>
 #include <sstream>
 
+namespace fs = std::filesystem;
+
 #ifdef WIN32
 #include <windows.h>
 
@@ -125,7 +127,7 @@ bool SimZip::add(const std::string& file, const std::string& archiveName)
 {
     fs::path path(file);
     if (!fs::exists(path)) {
-        std::cerr << "The file is not exist\n";
+        std::cerr << "The file(" << file << ") is not exist\n";
         return false;
     }
     if (d_ptr->mode_ != OpenMode::Create) {
@@ -176,8 +178,7 @@ void SimZip::save()
 
     mz_zip_writer_end(&d_ptr->archive_);
 
-    std::cout << "Created zip file " << d_ptr->zipName_ << ", file size: " << d_ptr->archive_.m_archive_size / 1024
-              << "KB\n";
+    std::cout << "Created zip file " << d_ptr->zipName_ << ", file size: " << d_ptr->archive_.m_archive_size << "B\n";
 }
 
 bool SimZip::extract(const std::string& member, const std::string& path)
