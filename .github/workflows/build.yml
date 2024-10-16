@@ -14,13 +14,14 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{matrix.os}}
     strategy:
       # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations.
       # Consider changing this to true when your workflow is stable.
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
+        build-type: [Debug, Release]
 
     steps:
       - name: Checkout Source code
@@ -29,11 +30,13 @@ jobs:
         #    submodules: true
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DENABLE_TESTS=ON
 
       - name: Build
-        run: cmake --build ${{github.workspace}}/build --config Release
+        # Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
 
       - name: Test
         working-directory: ${{github.workspace}}/build
-        run: ctest -C Release
+        # Note that -C/--build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+        run: ctest -C ${{matrix.build_type}} -V --output-on-failure
