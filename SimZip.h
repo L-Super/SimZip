@@ -26,7 +26,6 @@ SOFTWARE.
 
 #include <string>
 #include <memory>
-#include <filesystem>
 
 class SimZipPrivate;
 class SimZip {

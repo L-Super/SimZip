@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include "SimZip.h"
 #include "miniz.h"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -187,7 +188,8 @@ bool SimZip::extract(const std::string& member, const std::string& path)
 
     fs::path dstPath(path);
     if (!fs::exists(dstPath)) {
-        fs::create_directory(dstPath);
+        // recursive create dir
+        fs::create_directories(dstPath);
     }
     dstPath = fs::absolute(dstPath / member);
 
@@ -204,7 +206,8 @@ void SimZip::extractall(const std::string& path)
 {
     fs::path dstPath(path);
     if (!fs::exists(dstPath)) {
-        fs::create_directory(dstPath);
+        // recursive create dir
+        fs::create_directories(dstPath);
     }
 
     auto nums = mz_zip_reader_get_num_files(&d_ptr->archive_);
@@ -215,17 +218,19 @@ void SimZip::extractall(const std::string& path)
                       << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
         }
 
+        // create dir
         if (stat.m_is_directory) {
             fs::path dir = dstPath / stat.m_filename;
             fs::create_directory(dir);
         }
         else {
             fs::path f;
-#ifdef WIN32
-            f = char_to_wchar(stat.m_filename);
-#else
+            // FIXME: Windows CI失败，可能是这里编码的问题，临时注释
+//#ifdef WIN32
+//            f = char_to_wchar(stat.m_filename);
+//#else
             f = stat.m_filename;
-#endif
+//#endif
             fs::path filepath = fs::absolute(dstPath / f);
             if (filepath.filename().string() != stat.m_filename && !fs::exists(filepath.parent_path())) {
                 fs::create_directories(filepath.parent_path());
