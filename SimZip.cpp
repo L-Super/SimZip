@@ -186,12 +186,11 @@ bool SimZip::extract(const std::string& member, const std::string& path)
 {
     int index = d_ptr->archiveFileIndex(member);
 
-    fs::path dstPath(path);
-    if (!fs::exists(dstPath)) {
+    if (!fs::exists(path)) {
         // recursive create dir
-        fs::create_directories(dstPath);
+        fs::create_directories(path);
     }
-    dstPath = fs::absolute(dstPath / member);
+    auto dstPath = fs::absolute(fs::path(path) / member);
 
     if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, index, dstPath.string().c_str(), 0)) {
         std::cerr << "Failed extracting " << member

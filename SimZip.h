@@ -24,8 +24,8 @@ SOFTWARE.
 
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
 
 class SimZipPrivate;
 class SimZip {
@@ -33,18 +33,19 @@ public:
     /**
      * Enum class defining the modes in which a ZIP file can be opened
      */
-     enum class OpenMode{
-        Read, ///< Mode for reading an existing ZIP file.
-        Create, ///< Mode for creating a new ZIP file.
-        None, ///< Default mode.
+    enum class OpenMode {
+        Read,  ///< Mode for reading an existing ZIP file.
+        Create,///< Mode for creating a new ZIP file.
+        None,  ///< Default mode.
     };
+
 public:
     /**
      * SimZip constructor
      * @param zipName The name of the zip file that needs to be created or opened.
      * @param mode The mode in which the ZIP file is opened.
      */
-    explicit SimZip(const std::string & zipName,  OpenMode mode);
+    explicit SimZip(const std::string& zipName, OpenMode mode);
     /**
      * SimZip constructor
      * @param zipName The name of the zip file that needs to be created or opened.
@@ -67,7 +68,7 @@ public:
      * @param archiveName The internal path within the ZIP file (optional, defaults to the original file path).
      * @return  true if successful, false otherwise.
      */
-    bool add(const std::string &file, const std::string &archiveName = {});
+    bool add(const std::string& file, const std::string& archiveName = {});
 
     /**
      * Saves the ZIP file to disk
@@ -80,12 +81,12 @@ public:
      * @param path The path to which the file will be extracted.
      * @return true if successful, false otherwise.
      */
-    bool extract(const std::string &member, const std::string &path);
+    bool extract(const std::string& member, const std::string& path);
     /**
      * Extracts all files from the ZIP archive
      * @param path The path to which all files will be extracted.
      */
-    void extractall(const std::string &path);
+    void extractall(const std::string& path);
 
     /**
      * close zip handle
