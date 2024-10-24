@@ -104,7 +104,6 @@ mz_zip_archive_file_stat SimZipPrivate::readFileStat(int index)
 
 auto SimZipPrivate::archiveFileIndex(const std::string& name)
 {
-    // FIXME: 文件名为中文时，查找失败. mz_zip_reader_locate_file内部未作wchar转换
     int index = mz_zip_reader_locate_file(&archive_, name.c_str(), nullptr, 0);
 
     if (index < 0) {
@@ -203,13 +202,19 @@ bool SimZip::extract(const std::string& member, const std::string& path)
 {
     int index = d_ptr->archiveFileIndex(member);
 
-    if (!fs::exists(path)) {
+#ifdef _MSC_VER
+    fs::path dir(char_to_wchar(path.c_str()));
+#else
+    fs::path dir(path);
+#endif
+    if (!fs::exists(dir)) {
         // recursive create dir
-        fs::create_directories(path);
+        fs::create_directories(dir);
     }
-    auto dstPath = fs::absolute(fs::path(path) / member);
+    auto dstPath = path + "/" + member;
 
-    if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, index, dstPath.string().c_str(), 0)) {
+    // note: when the passed-in member contains a folder path, the extraction will fail.
+    if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, index, dstPath.c_str(), 0)) {
         std::cerr << "Failed extracting " << member
                   << " from archive. Error string: " << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_))
                   << std::endl;
