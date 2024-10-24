@@ -31,19 +31,31 @@ SOFTWARE.
 
 namespace fs = std::filesystem;
 
-#ifdef WIN32
+#ifdef _MSC_VER
 #include <windows.h>
 
+// UTF-8 to wchar
 std::wstring char_to_wchar(const char* str)
 {
-    wchar_t* wc;
-    int len = MultiByteToWideChar(CP_ACP, 0, str, (int) strlen(str), NULL, 0);
-    wc = new wchar_t[len + 1];
-    MultiByteToWideChar(CP_ACP, 0, str, (int) strlen(str), wc, len);
+    int len = MultiByteToWideChar(CP_UTF8, 0, str, (int) strlen(str), NULL, 0);
+    wchar_t* wc = new wchar_t[len + 1];
+    MultiByteToWideChar(CP_UTF8, 0, str, (int) strlen(str), wc, len);
     wc[len] = '\0';
     std::wstring wstr = wc;
     delete[] wc;
     return wstr;
+}
+
+// wchar to UTF-8
+std::string wchar_to_char(const wchar_t* wc)
+{
+    int len = WideCharToMultiByte(CP_UTF8, 0, wc, (int) wcslen(wc), NULL, 0, NULL, NULL);
+    char* c = new char[len + 1];
+    WideCharToMultiByte(CP_UTF8, 0, wc, (int) wcslen(wc), c, len, NULL, NULL);
+    c[len] = '\0';
+    std::string str = c;
+    delete[] c;
+    return str;
 }
 #endif
 
@@ -92,7 +104,7 @@ mz_zip_archive_file_stat SimZipPrivate::readFileStat(int index)
 
 auto SimZipPrivate::archiveFileIndex(const std::string& name)
 {
-    // FIXME: 文件名为中文时，查找失败
+    // FIXME: 文件名为中文时，查找失败. mz_zip_reader_locate_file内部未作wchar转换
     int index = mz_zip_reader_locate_file(&archive_, name.c_str(), nullptr, 0);
 
     if (index < 0) {
@@ -126,8 +138,12 @@ void SimZip::setmode(SimZip::OpenMode mode)
 
 bool SimZip::add(const std::string& file, const std::string& archiveName)
 {
-    fs::path path(file);
-    if (!fs::exists(path)) {
+#ifdef _MSC_VER
+    fs::path filepath(char_to_wchar(file.c_str()));
+#else
+    fs::path filepath(file);
+#endif
+    if (!fs::exists(filepath)) {
         std::cerr << "The file(" << file << ") is not exist\n";
         return false;
     }
@@ -136,7 +152,7 @@ bool SimZip::add(const std::string& file, const std::string& archiveName)
     }
 
     // Use the `filesystem` as an argument to resolve the issue of Chinese files not being able to be opened.
-    std::ifstream ifs(path, std::ios::binary | std::ios::in);
+    std::ifstream ifs(filepath, std::ios::binary | std::ios::in);
     if (!ifs.is_open()) {
         std::cerr << file << " open failed\n";
         return false;
@@ -144,10 +160,11 @@ bool SimZip::add(const std::string& file, const std::string& archiveName)
     std::stringstream ss;
     ss << ifs.rdbuf();
     std::string bytes = ss.str();
+    ifs.close();
 
     std::string archiveFileName;
     if (archiveName.empty()) {
-        archiveFileName = path.filename().string();
+        archiveFileName = fs::path(file).filename().string();
     }
     else {
         archiveFileName = archiveName;
@@ -203,7 +220,11 @@ bool SimZip::extract(const std::string& member, const std::string& path)
 
 void SimZip::extractall(const std::string& path)
 {
+#ifdef _MSC_VER
+    fs::path dstPath(char_to_wchar(path.c_str()));
+#else
     fs::path dstPath(path);
+#endif
     if (!fs::exists(dstPath)) {
         // recursive create dir
         fs::create_directories(dstPath);
@@ -219,22 +240,26 @@ void SimZip::extractall(const std::string& path)
 
         // create dir
         if (stat.m_is_directory) {
-            fs::path dir = dstPath / stat.m_filename;
+#ifdef _MSC_VER
+            fs::path dir = dstPath / char_to_wchar(stat.m_filename);
+#else
+            fs::path dir = fs::absolute(dstPath / stat.m_filename);
+#endif
             fs::create_directory(dir);
         }
         else {
-            fs::path f;
-            // FIXME: Windows CI失败，可能是这里编码的问题，临时注释
-//#ifdef WIN32
-//            f = char_to_wchar(stat.m_filename);
-//#else
-            f = stat.m_filename;
-//#endif
-            fs::path filepath = fs::absolute(dstPath / f);
+#ifdef _MSC_VER
+            fs::path filepath = fs::absolute(dstPath / char_to_wchar(stat.m_filename));
+#else
+            fs::path filepath = fs::absolute(dstPath / stat.m_filename);
+#endif
             if (filepath.filename().string() != stat.m_filename && !fs::exists(filepath.parent_path())) {
                 fs::create_directories(filepath.parent_path());
             }
-            if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, stat.m_file_index, filepath.string().c_str(), 0)) {
+
+            // UTF-8 string
+            std::string outFilePath = path + "/" + stat.m_filename;
+            if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, stat.m_file_index, outFilePath.c_str(), 0)) {
                 std::cerr << "Failed extracting " << stat.m_filename << " from archive. Error string: "
                           << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
             }
