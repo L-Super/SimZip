@@ -3,12 +3,13 @@
 #include <catch2/reporters/catch_reporters_all.hpp>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 namespace fs = std::filesystem;
 
 namespace {
     const std::string enFilename{"data.txt"};
-    const std::string zhFileName{"中文文件.txt"};
+    const std::string zhFileName{u8"中文文件.txt"};
 }// namespace
 
 void generateData(const std::string& filename)
@@ -74,7 +75,7 @@ TEST_CASE("create unicode zip", "[create_zip2]")
     {
         generateData(enFilename);
 
-        std::string zipName{"test/压缩包.zip"};
+        std::string zipName{u8"test/压缩包.zip"};
         SimZip zip(zipName, SimZip::OpenMode::Create);
         REQUIRE(zip.add(enFilename) == true);
         REQUIRE(zip.add(enFilename, "folder/rename.txt") == true);
@@ -88,8 +89,8 @@ TEST_CASE("create unicode zip", "[create_zip2]")
         generateData(zhFileName);
         SimZip zip("test/test-unicode.zip", SimZip::OpenMode::Create);
         REQUIRE(zip.add(zhFileName) == true);
-        REQUIRE(zip.add(zhFileName, "folder/文件.txt") == true);
-        REQUIRE(zip.add(zhFileName, "文件夹/文件.txt") == true);
+        REQUIRE(zip.add(zhFileName, u8"folder/文件.txt") == true);
+        REQUIRE(zip.add(zhFileName, u8"文件夹/文件.txt") == true);
         REQUIRE(zip.add("不存在文件.txt") == false);
         zip.save();
     }
@@ -121,8 +122,11 @@ TEST_CASE("extract unicode zip", "[extract_zip2]")
     const std::string outputPath{"test/output"};
     SECTION("Extract the zip with unicode name")
     {
-        SimZip zip("test/压缩包.zip", SimZip::OpenMode::Read);
+        SimZip zip(u8"test/压缩包.zip", SimZip::OpenMode::Read);
         zip.extract(enFilename, outputPath);
+        for (const auto& file: fs::directory_iterator(outputPath)) {
+            std::cout << "extracted file:" << file.path() << std::endl;
+        }
         REQUIRE(fs::exists(outputPath + "/" + enFilename));
     }
 
@@ -130,6 +134,9 @@ TEST_CASE("extract unicode zip", "[extract_zip2]")
     {
         SimZip zip("test/test-unicode.zip", SimZip::OpenMode::Read);
         zip.extract(zhFileName, outputPath);
+        for (const auto& file: fs::directory_iterator(outputPath)) {
+            std::cout << "extracted file:" << file.path() << std::endl;
+        }
         REQUIRE(fs::exists(outputPath + "/" + zhFileName));
     }
 
@@ -138,6 +145,9 @@ TEST_CASE("extract unicode zip", "[extract_zip2]")
         SimZip zip("test/test-unicode.zip", SimZip::OpenMode::Read);
         zip.extractall(outputPath);
         std::vector<std::string> expected_files = {zhFileName, "folder/文件.txt", "文件夹/文件.txt"};
+        for (const auto& file: fs::directory_iterator(outputPath)) {
+            std::cout << "extracted file:" << file.path() << std::endl;
+        }
         for (const auto& file: expected_files) { REQUIRE(fs::exists(outputPath + "/" + file)); }
     }
 }

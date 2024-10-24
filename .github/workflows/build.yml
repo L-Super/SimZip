@@ -40,3 +40,10 @@ jobs:
         working-directory: ${{github.workspace}}/build
         # Note that -C/--build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
         run: ctest -C ${{matrix.build_type}} -V
+
+      - name: Upload build artifacts on Windows
+        if: failure() && matrix.os == 'windows-latest'  # 仅在Windows失败时执行
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build-artifacts
+          path: ${{github.workspace}}/build/  # 上传整个构建目录
