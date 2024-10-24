@@ -9,7 +9,7 @@ namespace fs = std::filesystem;
 
 namespace {
     const std::string enFilename{"data.txt"};
-    const std::string zhFileName{"中文文件.txt"};
+    const std::string zhFileName{"文件.txt"};
 }// namespace
 
 void generateData(const std::string& filename)
