@@ -119,9 +119,9 @@ TEST_CASE("extract zip", "[extract_zip]")
 
 TEST_CASE("extract unicode zip", "[extract_zip2]")
 {
-    const std::string outputPath{"test/output"};
     SECTION("Extract the zip with unicode name")
     {
+        const std::string outputPath{"test/output"};
         SimZip zip("test/压缩包.zip", SimZip::OpenMode::Read);
         zip.extract(enFilename, outputPath);
         for (const auto& file: fs::directory_iterator(outputPath)) {
@@ -132,8 +132,9 @@ TEST_CASE("extract unicode zip", "[extract_zip2]")
 
     SECTION("Extract single unicode file from zip")
     {
+        const std::string outputPath{"test/output2"};
         SimZip zip("test/test-unicode.zip", SimZip::OpenMode::Read);
-        zip.extract(zhFileName, "test/output2");
+        zip.extract(zhFileName, outputPath);
         for (const auto& file: fs::directory_iterator(outputPath)) {
             std::cout << "extracted file:" << file.path() << std::endl;
         }
@@ -142,8 +143,9 @@ TEST_CASE("extract unicode zip", "[extract_zip2]")
 
     SECTION("Extract all unicode files from zip")
     {
+        const std::string outputPath{"test/output3"};
         SimZip zip("test/test-unicode.zip", SimZip::OpenMode::Read);
-        zip.extractall("test/output3");
+        zip.extractall(outputPath);
         std::vector<std::string> expected_files = {zhFileName, "folder/文件.txt", "文件夹/文件.txt"};
         for (const auto& file: fs::directory_iterator(outputPath)) {
             std::cout << "extracted file:" << file.path() << std::endl;
