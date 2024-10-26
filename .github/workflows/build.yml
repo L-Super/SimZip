@@ -42,7 +42,7 @@ jobs:
         run: ctest -C ${{matrix.build_type}} -V
 
       - name: Upload build artifacts on Windows
-        if: failure() && matrix.os == 'windows-latest'  # 仅在Windows失败时执行
+        if: matrix.os == 'windows-latest'  # 仅在Windows失败时执行
         uses: actions/upload-artifact@v3
         with:
           name: windows-build-artifacts
