@@ -10,6 +10,7 @@ set(TARGET_NAME SimZipTest)
 set(SRC test.cpp)
 
 if (MSVC)
+    # https://learn.microsoft.com/zh-cn/windows/apps/design/globalizing/use-utf8-code-page
     # 清单文件的输出路径
     set(MANIFEST_FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.manifest")
     # 使用 configure_file 生成清单文件，将 TARGET_NAME 替换为实际目标名称
