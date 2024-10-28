@@ -4,7 +4,7 @@ project(SimZip
         DESCRIPTION "A minimal C++17 zip library for zip compression and decompression."
 )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT CMAKE_BUILD_TYPE)

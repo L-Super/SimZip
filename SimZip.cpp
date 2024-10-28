@@ -137,11 +137,7 @@ void SimZip::setmode(SimZip::OpenMode mode)
 
 bool SimZip::add(const std::string& file, const std::string& archiveName)
 {
-#ifdef _MSC_VER
-    fs::path filepath(char_to_wchar(file.c_str()));
-#else
     fs::path filepath(file);
-#endif
     if (!fs::exists(filepath)) {
         std::cerr << "The file(" << file << ") is not exist\n";
         return false;
@@ -202,11 +198,7 @@ bool SimZip::extract(const std::string& member, const std::string& path)
 {
     int index = d_ptr->archiveFileIndex(member);
 
-#ifdef _MSC_VER
-    fs::path dir(char_to_wchar(path.c_str()));
-#else
     fs::path dir(path);
-#endif
     if (!fs::exists(dir)) {
         // recursive create dir
         fs::create_directories(dir);
@@ -225,11 +217,7 @@ bool SimZip::extract(const std::string& member, const std::string& path)
 
 void SimZip::extractall(const std::string& path)
 {
-#ifdef _MSC_VER
-    fs::path dstPath(char_to_wchar(path.c_str()));
-#else
     fs::path dstPath(path);
-#endif
     if (!fs::exists(dstPath)) {
         // recursive create dir
         fs::create_directories(dstPath);
@@ -245,19 +233,11 @@ void SimZip::extractall(const std::string& path)
 
         // create dir
         if (stat.m_is_directory) {
-#ifdef _MSC_VER
-            fs::path dir = dstPath / char_to_wchar(stat.m_filename);
-#else
             fs::path dir = fs::absolute(dstPath / stat.m_filename);
-#endif
             fs::create_directory(dir);
         }
         else {
-#ifdef _MSC_VER
-            fs::path filepath = fs::absolute(dstPath / char_to_wchar(stat.m_filename));
-#else
             fs::path filepath = fs::absolute(dstPath / stat.m_filename);
-#endif
             if (filepath.filename().string() != stat.m_filename && !fs::exists(filepath.parent_path())) {
                 fs::create_directories(filepath.parent_path());
             }
