@@ -41,7 +41,7 @@ public:
 };
 
 // register listener
-CATCH_REGISTER_LISTENER(CleanupListener)
+//CATCH_REGISTER_LISTENER(CleanupListener)
 
 TEST_CASE("create zip", "[create_zip]")
 {
