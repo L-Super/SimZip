@@ -39,6 +39,17 @@ public:
         None,  ///< Default mode.
     };
 
+    /**
+     * @brief A structure to represent the outcome of an operation.
+     *
+     * This structure is designed to encapsulate the result of an operation, indicating whether it was successful or not,
+     * and providing an error message in case of failure.
+     */
+    struct Result {
+        bool ok{false};         ///< Whether the operation was executed successfully.
+        std::string latestError;///< The last error information if the operation failed.
+    };
+
 public:
     /**
      * SimZip constructor
@@ -66,12 +77,13 @@ public:
      * Adds a file to the ZIP archive
      * @param file The path of the file to be added.
      * @param archiveName The internal path within the ZIP file (optional, defaults to the original file path).
-     * @return  true if successful, false otherwise.
+     * @return true if successful, false otherwise, and carry the last one error information.
      */
-    bool add(const std::string& file, const std::string& archiveName = {});
+    Result add(const std::string& file, const std::string& archiveName = {});
 
     /**
-     * Saves the ZIP file to disk
+     * @brief Saves the ZIP file to disk
+     * After add() is complete, it needs to be called.
      */
     void save();
 
@@ -79,17 +91,20 @@ public:
      * Extracts a single file from the ZIP archive
      * @param member The internal path of the file within the ZIP archive.
      * @param path The path to which the file will be extracted.
-     * @return true if successful, false otherwise.
+     * @return true if successful, false otherwise, and carry the last one error information.
      */
-    bool extract(const std::string& member, const std::string& path);
+    Result extract(const std::string& member, const std::string& path);
+
     /**
      * Extracts all files from the ZIP archive
      * @param path The path to which all files will be extracted.
+     * @return  true if successful, false otherwise, and carry the last one error information.
      */
-    void extractall(const std::string& path);
+    Result extractall(const std::string& path);
 
     /**
-     * close zip handle
+     * Close zip handle.
+     * It will be automatically called in the destructor.
      */
     void close();
 

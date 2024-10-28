@@ -30,6 +30,7 @@ SOFTWARE.
 #include <sstream>
 
 namespace fs = std::filesystem;
+using namespace std::string_literals;
 
 #ifdef _MSC_VER
 #include <windows.h>
@@ -135,7 +136,7 @@ void SimZip::setmode(SimZip::OpenMode mode)
     d_ptr->init(mode);
 }
 
-bool SimZip::add(const std::string& file, const std::string& archiveName)
+SimZip::Result SimZip::add(const std::string& file, const std::string& archiveName)
 {
 #ifdef _MSC_VER
     fs::path filepath(char_to_wchar(file.c_str()));
@@ -144,7 +145,7 @@ bool SimZip::add(const std::string& file, const std::string& archiveName)
 #endif
     if (!fs::exists(filepath)) {
         std::cerr << "The file(" << file << ") is not exist\n";
-        return false;
+        return {false, "The file "s + file + " is not exist"s};
     }
     if (d_ptr->mode_ != OpenMode::Create) {
         throw std::runtime_error("The current mode is not OpenMode::Create");
@@ -154,7 +155,7 @@ bool SimZip::add(const std::string& file, const std::string& archiveName)
     std::ifstream ifs(filepath, std::ios::binary | std::ios::in);
     if (!ifs.is_open()) {
         std::cerr << file << " open failed\n";
-        return false;
+        return {false, file + " open failed"};
     }
     std::stringstream ss;
     ss << ifs.rdbuf();
@@ -175,10 +176,10 @@ bool SimZip::add(const std::string& file, const std::string& archiveName)
 
     if (!success) {
         std::cerr << "Failed compress file: " << file << std::endl;
-        return false;
+        return {false, "Failed compress file: "s + file};
     }
 
-    return true;
+    return {true, {}};
 }
 
 void SimZip::save()
@@ -198,7 +199,7 @@ void SimZip::save()
     std::cout << "Created zip file " << d_ptr->zipName_ << ", file size: " << d_ptr->archive_.m_archive_size << "B\n";
 }
 
-bool SimZip::extract(const std::string& member, const std::string& path)
+SimZip::Result SimZip::extract(const std::string& member, const std::string& path)
 {
     int index = d_ptr->archiveFileIndex(member);
 
@@ -215,15 +216,17 @@ bool SimZip::extract(const std::string& member, const std::string& path)
 
     // note: when the passed-in member contains a folder path, the extraction will fail.
     if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, index, dstPath.c_str(), 0)) {
-        std::cerr << "Failed extracting " << member
-                  << " from archive. Error string: " << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_))
-                  << std::endl;
-        return false;
+        std::string error = std::string("Failed extracting ")
+                                    .append(member)
+                                    .append(" from archive. Error string: ")
+                                    .append(mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)));
+        std::cerr << error << std::endl;
+        return {false, error};
     }
-    return true;
+    return {true, {}};
 }
 
-void SimZip::extractall(const std::string& path)
+SimZip::Result SimZip::extractall(const std::string& path)
 {
 #ifdef _MSC_VER
     fs::path dstPath(char_to_wchar(path.c_str()));
@@ -234,13 +237,14 @@ void SimZip::extractall(const std::string& path)
         // recursive create dir
         fs::create_directories(dstPath);
     }
-
+    std::string latestError;
     auto nums = mz_zip_reader_get_num_files(&d_ptr->archive_);
     for (unsigned int i = 0; i < nums; i++) {
         mz_zip_archive_file_stat stat{};
         if (!mz_zip_reader_file_stat(&d_ptr->archive_, i, &stat)) {
-            std::cerr << "Read archive file failed. Error string: "
-                      << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
+            latestError = "Read archive file failed. Error string: "s +
+                          mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_));
+            std::cerr << latestError << std::endl;
         }
 
         // create dir
@@ -265,12 +269,19 @@ void SimZip::extractall(const std::string& path)
             // UTF-8 string
             std::string outFilePath = path + "/" + stat.m_filename;
             if (!mz_zip_reader_extract_to_file(&d_ptr->archive_, stat.m_file_index, outFilePath.c_str(), 0)) {
-                std::cerr << "Failed extracting " << stat.m_filename << " from archive. Error string: "
-                          << mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)) << std::endl;
+                latestError = std::string("Failed extracting ")
+                                      .append(stat.m_filename)
+                                      .append(" from archive. Error string: ")
+                                      .append(mz_zip_get_error_string(mz_zip_get_last_error(&d_ptr->archive_)));
+                std::cerr << latestError << std::endl;
             }
         }
     }
     mz_zip_reader_end(&d_ptr->archive_);
+    if (latestError.empty()) {
+        return {true, {}};
+    }
+    return {false, latestError};
 }
 
 void SimZip::close()
