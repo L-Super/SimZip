@@ -12,13 +12,13 @@ namespace {
     const std::string zhFileName{"文件.txt"};
 }// namespace
 
-void generateData(const std::string& filename)
+void generateData(const fs::path& filename)
 {
     std::ofstream file(filename);
     if (file.is_open()) {
         for (auto i = 0; i < 10; i++) { file << "this is data for test.\n"; }
-        file.close();
     }
+    file.close();
 }
 
 void clear()
