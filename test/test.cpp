@@ -14,6 +14,12 @@ namespace {
 
 void generateData(const fs::path& filename)
 {
+#if _WIN32
+    // 设置标准库调用系统 API 所用的编码，用于 fopen，ifstream 等函数
+    setlocale(LC_ALL, ".utf-8");
+    // 设置控制台输出编码，或者 system("chcp 65001") 也行，这里 CP_UTF8 = 65001
+    SetConsoleOutputCP(CP_UTF8);
+#endif
     std::ofstream file(filename);
     if (file.is_open()) {
         for (auto i = 0; i < 10; i++) { file << "this is data for test.\n"; }
