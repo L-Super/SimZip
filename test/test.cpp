@@ -5,6 +5,11 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef _WIN32
+#include <clocale>
+#include <Windows.h>
+#endif
+
 namespace fs = std::filesystem;
 
 namespace {
