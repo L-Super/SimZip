@@ -34,28 +34,24 @@ namespace fs = std::filesystem;
 #ifdef _MSC_VER
 #include <windows.h>
 
-// UTF-8 to wchar
-std::wstring char_to_wchar(const char* str)
+// UTF-8 to wstring
+std::wstring utf8_to_wstring(const std::string& s)
 {
-    int len = MultiByteToWideChar(CP_UTF8, 0, str, (int) strlen(str), NULL, 0);
-    wchar_t* wc = new wchar_t[len + 1];
-    MultiByteToWideChar(CP_UTF8, 0, str, (int) strlen(str), wc, len);
-    wc[len] = '\0';
-    std::wstring wstr = wc;
-    delete[] wc;
-    return wstr;
+    int len = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), s.size(), nullptr, 0);
+    // the same as ws(len, '\0')
+    std::wstring ws(len, 0);
+    MultiByteToWideChar(CP_UTF8, 0, s.c_str(), s.size(), ws.data(), ws.size());
+    return ws;
 }
 
-// wchar to UTF-8
-std::string wchar_to_char(const wchar_t* wc)
+// wstring to UTF-8
+std::string wstring_to_utf8(const std::wstring& ws)
 {
-    int len = WideCharToMultiByte(CP_UTF8, 0, wc, (int) wcslen(wc), NULL, 0, NULL, NULL);
-    char* c = new char[len + 1];
-    WideCharToMultiByte(CP_UTF8, 0, wc, (int) wcslen(wc), c, len, NULL, NULL);
-    c[len] = '\0';
-    std::string str = c;
-    delete[] c;
-    return str;
+    int len = WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), ws.size(), nullptr, 0, nullptr, nullptr);
+    // the same as s(len, '\0')
+    std::string s(len, 0);
+    WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), ws.size(), s.data(), s.size(), nullptr, nullptr);
+    return s;
 }
 #endif
 
@@ -138,7 +134,7 @@ void SimZip::setmode(SimZip::OpenMode mode)
 bool SimZip::add(const std::string& file, const std::string& archiveName)
 {
 #ifdef _MSC_VER
-    fs::path filepath(char_to_wchar(file.c_str()));
+    fs::path filepath(utf8_to_wstring(file));
 #else
     fs::path filepath(file);
 #endif
@@ -203,7 +199,7 @@ bool SimZip::extract(const std::string& member, const std::string& path)
     int index = d_ptr->archiveFileIndex(member);
 
 #ifdef _MSC_VER
-    fs::path dir(char_to_wchar(path.c_str()));
+    fs::path dir(utf8_to_wstring(path));
 #else
     fs::path dir(path);
 #endif
@@ -226,7 +222,7 @@ bool SimZip::extract(const std::string& member, const std::string& path)
 void SimZip::extractall(const std::string& path)
 {
 #ifdef _MSC_VER
-    fs::path dstPath(char_to_wchar(path.c_str()));
+    fs::path dstPath(utf8_to_wstring(path));
 #else
     fs::path dstPath(path);
 #endif
@@ -246,7 +242,7 @@ void SimZip::extractall(const std::string& path)
         // create dir
         if (stat.m_is_directory) {
 #ifdef _MSC_VER
-            fs::path dir = dstPath / char_to_wchar(stat.m_filename);
+            fs::path dir = dstPath / utf8_to_wstring(stat.m_filename);
 #else
             fs::path dir = fs::absolute(dstPath / stat.m_filename);
 #endif
@@ -254,7 +250,7 @@ void SimZip::extractall(const std::string& path)
         }
         else {
 #ifdef _MSC_VER
-            fs::path filepath = fs::absolute(dstPath / char_to_wchar(stat.m_filename));
+            fs::path filepath = fs::absolute(dstPath / utf8_to_wstring(stat.m_filename));
 #else
             fs::path filepath = fs::absolute(dstPath / stat.m_filename);
 #endif
