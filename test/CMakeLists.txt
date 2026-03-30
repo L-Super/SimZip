@@ -19,7 +19,7 @@ if (MSVC)
 endif ()
 
 add_executable(${TARGET_NAME} ${SRC})
-target_link_libraries(${TARGET_NAME} PRIVATE SimZip Catch2::Catch2WithMain)
+target_link_libraries(${TARGET_NAME} PRIVATE SimZip::SimZip Catch2::Catch2WithMain)
 
 if (MSVC)
     target_compile_options(${TARGET_NAME} PRIVATE /utf-8)
