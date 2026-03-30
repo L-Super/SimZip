@@ -133,11 +133,8 @@ void SimZip::setmode(SimZip::OpenMode mode)
 
 bool SimZip::add(const std::string& file, const std::string& archiveName)
 {
-#ifdef _MSC_VER
-    fs::path filepath(utf8_to_wstring(file));
-#else
     fs::path filepath(file);
-#endif
+
     if (!fs::exists(filepath)) {
         std::cerr << "The file(" << file << ") is not exist\n";
         return false;
@@ -146,7 +143,6 @@ bool SimZip::add(const std::string& file, const std::string& archiveName)
         throw std::runtime_error("The current mode is not OpenMode::Create");
     }
 
-    // Use the `filesystem` as an argument to resolve the issue of Chinese files not being able to be opened.
     std::ifstream ifs(filepath, std::ios::binary | std::ios::in);
     if (!ifs.is_open()) {
         std::cerr << file << " open failed\n";
@@ -198,11 +194,7 @@ bool SimZip::extract(const std::string& member, const std::string& path)
 {
     int index = d_ptr->archiveFileIndex(member);
 
-#ifdef _MSC_VER
-    fs::path dir(utf8_to_wstring(path));
-#else
     fs::path dir(path);
-#endif
     if (!fs::exists(dir)) {
         // recursive create dir
         fs::create_directories(dir);
@@ -221,11 +213,8 @@ bool SimZip::extract(const std::string& member, const std::string& path)
 
 void SimZip::extractall(const std::string& path)
 {
-#ifdef _MSC_VER
-    fs::path dstPath(utf8_to_wstring(path));
-#else
     fs::path dstPath(path);
-#endif
+
     if (!fs::exists(dstPath)) {
         // recursive create dir
         fs::create_directories(dstPath);
@@ -241,19 +230,11 @@ void SimZip::extractall(const std::string& path)
 
         // create dir
         if (stat.m_is_directory) {
-#ifdef _MSC_VER
-            fs::path dir = dstPath / utf8_to_wstring(stat.m_filename);
-#else
             fs::path dir = fs::absolute(dstPath / stat.m_filename);
-#endif
             fs::create_directory(dir);
         }
         else {
-#ifdef _MSC_VER
-            fs::path filepath = fs::absolute(dstPath / utf8_to_wstring(stat.m_filename));
-#else
             fs::path filepath = fs::absolute(dstPath / stat.m_filename);
-#endif
             if (filepath.filename().string() != stat.m_filename && !fs::exists(filepath.parent_path())) {
                 fs::create_directories(filepath.parent_path());
             }

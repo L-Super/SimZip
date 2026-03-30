@@ -27,8 +27,23 @@ SOFTWARE.
 #include <memory>
 #include <string>
 
+#ifdef SIMZIP_STATIC
+#define SIMZIP_API
+#else
+#ifdef _WIN32
+#ifdef SIMZIP_EXPORTS
+#define SIMZIP_API __declspec(dllexport)
+#else
+#define SIMZIP_API __declspec(dllimport)
+#endif
+#else
+#define SIMZIP_API __attribute__((visibility("default")))
+#endif
+#endif
+
+
 class SimZipPrivate;
-class SimZip {
+class SIMZIP_API SimZip {
 public:
     /**
      * Enum class defining the modes in which a ZIP file can be opened
